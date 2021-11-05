@@ -84,10 +84,31 @@ def _read_stl_ascii(file: BinaryIO):
 
 
 def _read_stl_bin(file: BinaryIO):
-    # you should read header before this
-    num_tri = struct.unpack("<I", file.read(4))[0]
+    # assuming header has been read
+    num_tri = struct.unpack("<I", file.read(struct.calcsize("<I")))[0]
+    bm_verts = dict()
+    bm_mesh = bmesh.new(use_operators=False)
     for i in range(num_tri):
-        pass
+        normal_bytes = file.read(struct.calcsize("<3f"))
+        # normal = struct.unpack("<3f", normal_bytes)
+        current_face_verts = []
+        for _ in range(3):
+            vertex_vec_bytes = file.read(struct.calcsize("<3f"))
+            bm_vert = bm_verts.get(vertex_vec_bytes, None)
+            if bm_vert is None:
+                bm_vert = bm_mesh.verts.new(struct.unpack("<3f", vertex_vec_bytes))
+                bm_verts[vertex_vec_bytes] = bm_vert
+
+            current_face_verts.append(bm_vert)
+
+        bm_mesh.faces.new(current_face_verts)
+
+        file.read(struct.calcsize("<H"))
+
+    obj = object_from_bmesh(PurePath(file.name).stem, bm_mesh)
+    bm_mesh.free()
+
+    return obj
 
 
 def read_stl(filepath):
