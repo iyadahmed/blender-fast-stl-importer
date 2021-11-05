@@ -51,6 +51,11 @@ def _read_stl_header(file: BinaryIO):
     return STLType.BINARY, first_5_bytes + file.read(80 - 5)
 
 
+# TODO: make code more robust against "bad" STLs
+# TODO: investigate benefits of using bmesh.ops.remove_doubles
+# TODO: investigate benefits of using file.seek to skip "unneeded" data
+
+
 def _read_stl_ascii(file: BinaryIO):
     # you should read header before this
     bm_verts = dict()
