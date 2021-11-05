@@ -15,6 +15,16 @@ from typing import BinaryIO
 import bmesh
 import bpy
 import bpy_extras
+from timeit import default_timer
+from contextlib import contextmanager
+
+
+@contextmanager
+def execution_timer(msg: str):
+    t0 = default_timer()
+    yield
+    t1 = default_timer()
+    print(f"{msg} finished in {t1 - t0} sec")
 
 
 class FSTL_OT_import_stl(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
@@ -25,8 +35,9 @@ class FSTL_OT_import_stl(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
     filter_glob: bpy.props.StringProperty(default="*.stl", options={"HIDDEN"})
 
     def execute(self, context):
-        obj = read_stl(self.filepath)
-        bpy.context.collection.objects.link(obj)
+        with execution_timer(f"Importing STL {self.filepath}"):
+            obj = read_stl(self.filepath)
+            bpy.context.collection.objects.link(obj)
         return {"FINISHED"}
 
 
