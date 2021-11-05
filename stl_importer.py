@@ -35,6 +35,7 @@ import bpy_extras
 from timeit import default_timer
 from contextlib import contextmanager
 from cProfile import Profile
+from pstats import SortKey
 
 
 @contextmanager
@@ -54,11 +55,11 @@ class FSTL_OT_import_stl(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
 
     def execute(self, context):
         with execution_timer(f"Importing STL {self.filepath}"):
-            # with Profile() as pr:
-            obj = read_stl(self.filepath)
-            bpy.context.collection.objects.link(obj)
+            with Profile() as pr:
+                obj = read_stl(self.filepath)
+                bpy.context.collection.objects.link(obj)
 
-        # pr.print_stats()
+        pr.print_stats(SortKey.TIME)
         return {"FINISHED"}
 
 
