@@ -56,13 +56,8 @@ def _read_stl_ascii(file: BinaryIO):
     bm_verts = dict()
     bm_mesh = bmesh.new(use_operators=False)
     current_facet_verts = []
-    # normals = []
     for line in file.readlines():
         stripped_line = line.strip()
-        # if stripped_line.startswith(b"facet"):
-        # normal_str = stripped_line.rsplit(b" ", 3)[-3:]
-        # normal = [float(s) for s in normal_str]
-        # normals.append(normal)
         if stripped_line.startswith(b"vertex"):
             bm_vert = bm_verts.get(stripped_line, None)
             if bm_vert is None:
@@ -90,7 +85,6 @@ def _read_stl_bin(file: BinaryIO):
     bm_mesh = bmesh.new(use_operators=False)
     for i in range(num_tri):
         normal_bytes = file.read(struct.calcsize("<3f"))
-        # normal = struct.unpack("<3f", normal_bytes)
         current_face_verts = []
         for _ in range(3):
             vertex_vec_bytes = file.read(struct.calcsize("<3f"))
