@@ -125,8 +125,10 @@ def read_stl(filepath):
     with open(filepath, "rb") as file:
         stl_type, header = _read_stl_header(file)
         if stl_type == STLType.ASCII:
+            print(f"Reading ASCII STL {filepath}")
             return _read_stl_ascii(file)
 
+        print(f"Reading binary STL {filepath}")
         return _read_stl_bin(file)
 
 
