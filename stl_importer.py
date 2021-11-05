@@ -17,6 +17,7 @@ import bpy
 import bpy_extras
 from timeit import default_timer
 from contextlib import contextmanager
+from cProfile import Profile
 
 
 @contextmanager
@@ -36,8 +37,11 @@ class FSTL_OT_import_stl(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
 
     def execute(self, context):
         with execution_timer(f"Importing STL {self.filepath}"):
+            # with Profile() as pr:
             obj = read_stl(self.filepath)
             bpy.context.collection.objects.link(obj)
+
+        # pr.print_stats()
         return {"FINISHED"}
 
 
@@ -94,26 +98,34 @@ def _read_stl_ascii(file: BinaryIO):
     return obj
 
 
+FLOAT32_3_FORMAT = "<3f"
+FLOAT32_3_BYTES_SIZE = struct.calcsize(FLOAT32_3_FORMAT)
+
+UINT16_FORMAT = "<H"
+UINT16_BYTES_SIZE = struct.calcsize(UINT16_FORMAT)
+
+
 def _read_stl_bin(file: BinaryIO):
     # assuming header has been read
     num_tri = struct.unpack("<I", file.read(struct.calcsize("<I")))[0]
     bm_verts = dict()
     bm_mesh = bmesh.new(use_operators=False)
     for i in range(num_tri):
-        normal_bytes = file.read(struct.calcsize("<3f"))
+        normal_bytes = file.read(FLOAT32_3_BYTES_SIZE)
         current_face_verts = []
         for _ in range(3):
-            vertex_vec_bytes = file.read(struct.calcsize("<3f"))
+            vertex_vec_bytes = file.read(FLOAT32_3_BYTES_SIZE)
             bm_vert = bm_verts.get(vertex_vec_bytes, None)
             if bm_vert is None:
-                bm_vert = bm_mesh.verts.new(struct.unpack("<3f", vertex_vec_bytes))
+                vertex_vec = struct.unpack(FLOAT32_3_FORMAT, vertex_vec_bytes)
+                bm_vert = bm_mesh.verts.new(vertex_vec)
                 bm_verts[vertex_vec_bytes] = bm_vert
 
             current_face_verts.append(bm_vert)
 
         bm_mesh.faces.new(current_face_verts)
 
-        file.read(struct.calcsize("<H"))
+        file.read(UINT16_BYTES_SIZE)
 
     obj = object_from_bmesh(PurePath(file.name).stem, bm_mesh)
     bm_mesh.free()
