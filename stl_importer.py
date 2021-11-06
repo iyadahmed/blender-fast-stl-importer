@@ -71,6 +71,9 @@ def object_from_bmesh(name: str, bm: bmesh.types.BMesh):
     return obj
 
 
+# based on https://en.wikipedia.org/wiki/STL_(file_format)
+
+
 class STLType(Enum):
     ASCII = auto()
     BINARY = auto()
