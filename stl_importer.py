@@ -88,8 +88,6 @@ def _read_stl_header(file: BinaryIO):
 
 
 # TODO: make code more robust against "bad" STLs
-# TODO: investigate benefits of using bmesh.ops.remove_doubles'
-# TODO: investigate loading data in chunks
 
 
 def _read_stl_ascii(file: BinaryIO):
