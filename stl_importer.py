@@ -131,10 +131,10 @@ def _read_stl_bin(file: BinaryIO):
     num_tri = struct.unpack("<I", file.read(struct.calcsize("<I")))[0]
     bm_verts = dict()
     bm_mesh = bmesh.new(use_operators=False)
-    for i in range(num_tri):
+    face_verts_buf = [None, None, None]
+    for _ in range(num_tri):
         normal_bytes = file.read(FLOAT32_3_BYTES_SIZE)
-        current_face_verts = []
-        for _ in range(3):
+        for i in range(3):
             vertex_vec_bytes = file.read(FLOAT32_3_BYTES_SIZE)
             bm_vert = bm_verts.get(vertex_vec_bytes, None)
             if bm_vert is None:
@@ -142,9 +142,9 @@ def _read_stl_bin(file: BinaryIO):
                 bm_vert = bm_mesh.verts.new(vertex_vec)
                 bm_verts[vertex_vec_bytes] = bm_vert
 
-            current_face_verts.append(bm_vert)
+            face_verts_buf[i] = bm_vert
 
-        bm_mesh.faces.new(current_face_verts)
+        bm_mesh.faces.new(face_verts_buf)
 
         file.read(UINT16_BYTES_SIZE)
 
